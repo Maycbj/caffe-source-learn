@@ -13,24 +13,27 @@ namespace caffe {
  *        stochastic gradient descent (SGD) with momentum.
  */
 template <typename Dtype>
-class SGDSolver : public Solver<Dtype> {
+class SGDSolver : public Solver<Dtype> {  // 模板类SGDSolver,继承父类Solver  
  public:
   explicit SGDSolver(const SolverParameter& param)
       : Solver<Dtype>(param) { PreSolve(); }
   explicit SGDSolver(const string& param_file)
       : Solver<Dtype>(param_file) { PreSolve(); }
   virtual inline const char* type() const { return "SGD"; }
-
+  // 获取history数据  
   const vector<shared_ptr<Blob<Dtype> > >& history() { return history_; }
 
  protected:
   void PreSolve();
+  // 获取学习率
   Dtype GetLearningRate();
+  // 内部会调用ClipGradients、Normalize、Regularize、ComputeUpdateValue，更新net权值和偏置 
   virtual void ApplyUpdate();
   virtual void Normalize(int param_id);
   virtual void Regularize(int param_id);
   virtual void ComputeUpdateValue(int param_id, Dtype rate);
   virtual void ClipGradients();
+  // 存储snapshot solver state，内部会掉用SnapshotSolverStateToBinaryProto或SnapshotSolverStateToHDF5函数  
   virtual void SnapshotSolverState(const string& model_filename);
   virtual void SnapshotSolverStateToBinaryProto(const string& model_filename);
   virtual void SnapshotSolverStateToHDF5(const string& model_filename);
@@ -44,7 +47,9 @@ class SGDSolver : public Solver<Dtype> {
 
   DISABLE_COPY_AND_ASSIGN(SGDSolver);
 };
-
+/** 
+  定义了一些继承自SGDSolver的Solver， NesterovSolver， AdaGradSolver， RMSPropSolver等
+ */
 template <typename Dtype>
 class NesterovSolver : public SGDSolver<Dtype> {
  public:

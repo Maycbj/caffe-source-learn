@@ -99,6 +99,7 @@ message NetParameter {
 // Update the next available ID when you add a new SolverParameter field.
 //
 // SolverParameter next available ID: 42 (last added: layer_wise_reduce)
+// Solver参数  
 message SolverParameter {
   //////////////////////////////////////////////////////////////////////////////
   // Specifying the train and test networks
