@@ -175,24 +175,19 @@ void Solver<Dtype>::InitTestNets() {
     test_nets_[i]->set_debug_info(param_.debug_info());
   }
 }
-/**
-  反复执行net前向传播反向传播计算，期间会调用函数
-  TestAll -> ForwardBackward -> (终端打印loss结果)->  ApplyUpdate -> Snapshot
-*/
+
 template <typename Dtype>
 void Solver<Dtype>::Step(int iters) {
-  //start_iter开始迭代次数，stop_iter结束迭代次数
   const int start_iter = iter_;
   const int stop_iter = iter_ + iters;
   int average_loss = this->param_.average_loss();
   losses_.clear();
   smoothed_loss_ = 0;
   iteration_timer_.Start();
-  //训练主循环，训练超过最大训练次数，则结束训练
+
   while (iter_ < stop_iter) {
     // zero-init the params
     net_->ClearParamDiffs();
-    //验证是否需要test,且是否是test迭代次数
     if (param_.test_interval() && iter_ % param_.test_interval() == 0
         && (iter_ > 0 || param_.test_initialization())) {
       if (Caffe::root_solver()) {
@@ -212,7 +207,6 @@ void Solver<Dtype>::Step(int iters) {
     // accumulate the loss and gradient
     Dtype loss = 0;
     for (int i = 0; i < param_.iter_size(); ++i) {
-      //前向后向传播主入口
       loss += net_->ForwardBackward();
     }
     loss /= param_.iter_size();
@@ -249,7 +243,6 @@ void Solver<Dtype>::Step(int iters) {
     for (int i = 0; i < callbacks_.size(); ++i) {
       callbacks_[i]->on_gradients_ready();
     }
-    // 更新net的权值和偏置  
     ApplyUpdate();
 
     // Increment the internal iter_ counter -- its value should always indicate
@@ -273,11 +266,6 @@ void Solver<Dtype>::Step(int iters) {
   }
 }
 
-/**
-  依次调用
-  训练：     Restore -> Step -> Snapshot
-  训练结束： 执行net_的前向传播函数ForwardPrefilled，最后调用TestAll函数 ，作为所有训练结束的总结 
- */
 template <typename Dtype>
 void Solver<Dtype>::Solve(const char* resume_file) {
   CHECK(Caffe::root_solver());
@@ -289,15 +277,12 @@ void Solver<Dtype>::Solve(const char* resume_file) {
 
   if (resume_file) {
     LOG(INFO) << "Restoring previous solver status from " << resume_file;
-    // 加载已有的模型 
     Restore(resume_file);
   }
 
   // For a network that is trained by the solver, no bottom or top vecs
   // should be given, and we will just provide dummy vecs.
-  // iter_当前迭代次数
   int start_iter = iter_;
-  //训练过程入口Step函数，全部训练都在该函数内循环
   Step(param_.max_iter() - iter_);
   // If we haven't already, save a snapshot after optimization, unless
   // overridden by setting snapshot_after_train := false
@@ -414,7 +399,6 @@ void Solver<Dtype>::Test(const int test_net_id) {
   }
 }
 
-// 快照，内部会调用SnapshotToBinaryProto或SnapshotToHDF5、SnapshotSolverState函数  
 template <typename Dtype>
 void Solver<Dtype>::Snapshot() {
   CHECK(Caffe::root_solver());

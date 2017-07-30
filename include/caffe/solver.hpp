@@ -38,21 +38,9 @@ typedef boost::function<SolverAction::Enum()> ActionCallback;
  * Requires implementation of ApplyUpdate to compute a parameter update
  * given the current state of the Net parameters.
  */
-/**
- *模板类Solver
- *Solver通过协调Net的前向推断计算和反向梯度计算,来对参数进行更新，从而达到减少loss的目的。
- *Caffe模型的学习被分为两个部分：由Solver进行优化、更新参数，由Net计算出loss和gradient。
- *solver.prototxt是一个配置文件用来告知Caffe怎样对网络进行训练。
-
-  有了Net就可以进行神经网络的前后向传播计算了，但是还缺少神经网络的训练和预测功能，
-  Solver类进一步封装了训练和预测相关的一些功能。Solver定义了针对Net网络模型的求解方法，
-  记录神经网络的训练过程，保存神经网络模型参数，中断并恢复网络的训练过程。
-  自定义Solver能够实现不同的神经网络求解方式。
- */
 template <typename Dtype>
-class Solver {  // Solver模板类，虚基类
+class Solver {
  public:
-  // 显示构造函数, 内部会调用Init函数 
   explicit Solver(const SolverParameter& param);
   explicit Solver(const string& param_file);
   void Init(const SolverParameter& param);
@@ -77,7 +65,6 @@ class Solver {  // Solver模板类，虚基类
   // that stores the learned net. You should implement the SnapshotSolverState()
   // function that produces a SolverState protocol buffer that needs to be
   // written to disk together with the learned net.
-  // 快照，内部会调用SnapshotToBinaryProto或SnapshotToHDF5、SnapshotSolverState函数  
   void Snapshot();
   virtual ~Solver() {}
   inline const SolverParameter& param() const { return param_; }
@@ -88,7 +75,6 @@ class Solver {  // Solver模板类，虚基类
   int iter() const { return iter_; }
 
   // Invoked at specific points during an iteration
-  // 内部Callback类，仅在多卡GPU模式下使用  
   class Callback {
    protected:
     virtual void on_start() = 0;
@@ -111,32 +97,19 @@ class Solver {  // Solver模板类，虚基类
  protected:
   // Make and apply the update value for the current iteration.
   virtual void ApplyUpdate() = 0;
-
-  /*****  .caffemodel   */
-  // 由solver实现
-  // 获取快照文件名  
   string SnapshotFilename(const string extension);
-  // 写proto到.caffemodel  
   string SnapshotToBinaryProto();
-  // 写proto到HDF5文件  
   string SnapshotToHDF5();
   // The test routine
-  // TestAll内部会循环调用Test函数 
   void TestAll();
-  //只由TestAll调用，执行测试网络，net前向传播 
   void Test(const int test_net_id = 0);
-  /*****  .solverstate   */
-  // 存储snapshot solver state，即存储.solverstate文件
-  // 由solver的子类实现
   virtual void SnapshotSolverState(const string& model_filename) = 0;
-  // 读HDF5文件到solver state  
   virtual void RestoreSolverStateFromHDF5(const string& state_file) = 0;
   virtual void RestoreSolverStateFromBinaryProto(const string& state_file) = 0;
   void DisplayOutputBlobs(const int net_id);
   void UpdateSmoothedLoss(Dtype loss, int start_iter, int average_loss);
 
   SolverParameter param_;
-  // 当前的迭代数  
   int iter_;
   int current_step_;
   shared_ptr<Net<Dtype> > net_;
