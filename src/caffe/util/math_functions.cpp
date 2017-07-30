@@ -20,6 +20,7 @@ namespace caffe {
  *const int N，矩阵B的列，矩阵C的列
  *const int K，矩阵A的列，矩阵B的行
  */
+
 template<>
 void caffe_cpu_gemm<float>(const CBLAS_TRANSPOSE TransA,
     const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,

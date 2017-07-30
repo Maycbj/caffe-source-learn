@@ -282,6 +282,7 @@ void BaseConvolutionLayer<Dtype>::forward_cpu_gemm(const Dtype* input,
   }
   /*** 做矩阵乘法 ***/
   for (int g = 0; g < group_; ++g) {
+
     //调用了math_function.cpp基础矩阵相乘操作，内部调用BLAS中的函数，
     //gemm－General Matrix Matrix Multiply, C=alpha∗op(A)∗op(B)+beta∗C
     /*
